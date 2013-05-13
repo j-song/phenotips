@@ -61,7 +61,7 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
     private Ontology hpo;
 
     @Inject
-    @Named("ic")
+    @Named("bn")
     private Predictor predictor;
 
     public List<SearchResult> getMatches(Collection<String> phenotypes)

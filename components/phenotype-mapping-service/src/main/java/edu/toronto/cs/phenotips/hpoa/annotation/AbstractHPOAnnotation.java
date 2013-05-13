@@ -22,6 +22,7 @@ package edu.toronto.cs.phenotips.hpoa.annotation;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -37,17 +38,26 @@ public abstract class AbstractHPOAnnotation extends BGraph<AnnotationTerm>
 	public static final Side ANNOTATION = BGraph.Side.L;
 
 	protected Ontology hpo;
-
+	
+	protected Hashtable<String, Double> connectProb;
+	
+	public double getConnetProb(String annoId, String hpoId) {
+		String key = annoId + " " + hpoId;
+		return connectProb.get(key);
+	}
+	
 	public Ontology getOntology() {
 		return this.hpo;
 	}
 
 	public AbstractHPOAnnotation(Ontology hpo) {
 		this.hpo = hpo;
+		this.connectProb = new Hashtable<String, Double>();
 	}
 
 	public abstract int load(File source);
 
+	
 	public void propagateHPOAnnotations() {
 		for (AnnotationTerm t : this.getAnnotations()) {
 			propagateHPOAnnotations(t);

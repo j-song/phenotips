@@ -19,6 +19,7 @@
  */
 package edu.toronto.cs.phenotips.hpoa.main;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ import edu.toronto.cs.phenotips.hpoa.annotation.PrettyPrint;
 import edu.toronto.cs.phenotips.hpoa.annotation.SearchResult;
 import edu.toronto.cs.phenotips.hpoa.ontology.HPO;
 import edu.toronto.cs.phenotips.hpoa.ontology.Ontology;
+import edu.toronto.cs.phenotips.hpoa.prediction.BNPredictor;
 import edu.toronto.cs.phenotips.hpoa.prediction.ICPredictor;
 
 public class Main
@@ -51,6 +53,17 @@ public class Main
         // // PrettyPrint.printList(ann.getOMIMNodes(), System.out);
         // // PrettyPrint.printList(ann.getHPONodes(), System.out);
         // //
+
+        ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt"));
+        ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt"));
+        
+        
+        
+        
+        
+        
+        
+        
         AnnotationTerm ot = ann.getOMIMNode("OMIM:163950");
         // IDAGNode t = hpo.getTerm("HP:0006936");
 
@@ -137,7 +150,8 @@ public class Main
             System.out.println(ph + "\t" + hpo.getName(ph));
         }
         System.out.println();
-        ICPredictor predictor = new ICPredictor();
+        //ICPredictor predictor = new ICPredictor();
+        BNPredictor predictor = new BNPredictor();
         predictor.setAnnotation(ann);
         final int LIMIT = 5;
         List<SearchResult> results = predictor.getMatches(phenotypes);
@@ -146,13 +160,14 @@ public class Main
             System.out.println(ann.getAnnotationNode(results.get(i).getId()));
         }
 
-        double matchScore =
-            predictor
-                .asymmetricPhenotypeSimilarity(phenotypes, ann.getPhenotypesWithAnnotation("OMIM:152700").keySet());
-        System.out.println(matchScore);
-        System.out.println(ann.getAnnotationNode("OMIM:152700"));
+        //double matchScore =
+            //predictor
+                //.asymmetricPhenotypeSimilarity(phenotypes, ann.getPhenotypesWithAnnotation("OMIM:152700").keySet());
+        //System.out.println(matchScore);
+        //System.out.println(ann.getAnnotationNode("OMIM:152700"));
 
-        List<SearchResult> presults = predictor.getDifferentialPhenotypes(phenotypes);
+        //List<SearchResult> presults = predictor.getDifferentialPhenotypes(phenotypes);
+        List<SearchResult> presults = predictor.getMatches(phenotypes);
         PrettyPrint.printList(presults, 20, System.out);
     }
 }

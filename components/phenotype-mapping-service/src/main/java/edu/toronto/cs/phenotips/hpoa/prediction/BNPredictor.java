@@ -20,6 +20,8 @@
 package edu.toronto.cs.phenotips.hpoa.prediction;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Named;
@@ -27,6 +29,8 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import edu.toronto.cs.phenotips.hpoa.annotation.AnnotationTerm;
+import edu.toronto.cs.phenotips.hpoa.annotation.OmimHPOAnnotations;
 import edu.toronto.cs.phenotips.hpoa.annotation.SearchResult;
 
 @Component
@@ -37,7 +41,26 @@ public class BNPredictor extends AbstractPredictor
     @Override
     public List<SearchResult> getMatches(Collection<String> phenotypes)
     {
-        // TODO Auto-generated method stub
-        return null;
+        List<SearchResult> result = new LinkedList<SearchResult>();
+        for (AnnotationTerm o: this.annotations.getAnnotations()) {
+        	double matchScore = naiveBayesScore(o, phenotypes);
+        	if (matchScore > 0) {
+        		result.add(new SearchResult(o.getId(), o.getName(), matchScore));
+        	}
+        }
+        Collections.sort(result);
+        return result;
+    }
+    
+    private double naiveBayesScore(AnnotationTerm o, Collection<String> phenotypes) {
+    	String omimId = o.getId();
+    	double score = 1.0;
+    	OmimHPOAnnotations oha = (OmimHPOAnnotations)this.annotations;
+    	
+    	for (String ptype : phenotypes) {
+    		score *= oha.getConnetProb(omimId, ptype);
+    	}
+    	score *= oha.getPrev(omimId);
+    	return score;
     }
 }

@@ -26,7 +26,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -50,11 +52,79 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
 
     private static final int MIN_EXPECTED_FIELDS = 8;
 
+    private Hashtable<String, Double> prevalence;
+    
     public OmimHPOAnnotations(Ontology hpo)
     {
         super(hpo);
+        this.prevalence = new Hashtable<String, Double>();
     }
 
+    public int loadPrev(File source) {
+    	if (source == null) {
+    		return -1;
+    	}
+    	
+    	String omimId;
+    	double prob;
+    	
+    	try {
+    		Scanner sc = new Scanner(new BufferedReader(new FileReader(source)));
+    		while (sc.hasNext()) {
+    			omimId = sc.next();
+    			prob = sc.nextDouble();
+    			prevalence.put(omimId, prob);
+    		}
+    		sc.close();
+    		return 0;
+    	} catch (IOException ioe) {
+    		System.err.println("IOException: " + ioe.getMessage());
+    		return -1;
+    	}
+    }
+    
+    public int loadOMIMHPO(File source) {
+    	if (source == null) {
+    		return -1;
+    	}
+    	
+    	String omimId, hpoId;
+    	double prob;
+    	
+    	try {
+    		Scanner sc = new Scanner(new BufferedReader(new FileReader(source)));
+    		while (sc.hasNext()) {
+    			omimId = sc.next();
+    			hpoId = sc.next();
+    			prob = sc.nextDouble();
+    			connectProb.put(omimId + " " + hpoId, prob);
+    		}
+    		sc.close();
+    		return 0;
+    	} catch (IOException ioe) {
+    		System.err.println("IOException: " + ioe.getMessage());
+    		return -1;
+    	}
+    	
+    }
+    
+    public double getOMIMHPOProb(String key) {
+    	if (connectProb.contains(key))
+    		return connectProb.get(key);
+    	else return 0.0001;
+    }
+    
+    public double getPrev(String omimId) {
+    	if (prevalence.contains(omimId)) {
+    		return prevalence.get(omimId);
+    	} else return 0.0;
+    }
+    
+    
+    
+    
+    
+    
     @Override
     public int load(File source)
     {
@@ -94,7 +164,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
             ex.printStackTrace();
             System.err.println("Could not locate source file: " + source.getAbsolutePath());
         } catch (IOException ex) {
-            // TODO Auto-generated catch block
+            // TODO Auto-generated catch blocken_product1
             ex.printStackTrace();
         }
         return size();
