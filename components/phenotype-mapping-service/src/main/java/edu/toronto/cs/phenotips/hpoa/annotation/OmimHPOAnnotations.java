@@ -71,7 +71,8 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     	try {
     		Scanner sc = new Scanner(new BufferedReader(new FileReader(source)));
     		while (sc.hasNext()) {
-    			omimId = sc.next();
+    			omimId = sc.next().trim();
+    			omimId = "OMIM:" + omimId;
     			prob = sc.nextDouble();
     			prevalence.put(omimId, prob);
     		}
@@ -115,7 +116,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     }
     
     public double getPrev(String omimId) {
-    	if (prevalence.contains(omimId)) {
+    	if (prevalence.containsKey(omimId)) {
     		return prevalence.get(omimId);
     	} else return 0.0;
     }

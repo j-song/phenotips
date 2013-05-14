@@ -60,7 +60,7 @@ public class HPO extends AbstractOntology implements Initializable
         // this.load((SolrScriptService) this.service);
         // } else {
         this.load(getInputFileHandler(
-            "http://compbio.charite.de/svn/hpo/trunk/src/ontology/human-phenotype-ontology.obo", false));
+            "/home/jsong/Download/hp.obo", false));
         // }
         instance = this;
     }

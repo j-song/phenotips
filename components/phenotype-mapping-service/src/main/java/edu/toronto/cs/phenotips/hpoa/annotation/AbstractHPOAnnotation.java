@@ -39,11 +39,13 @@ public abstract class AbstractHPOAnnotation extends BGraph<AnnotationTerm>
 
 	protected Ontology hpo;
 	
-	protected Hashtable<String, Double> connectProb;
+	protected Hashtable<String, Double> connectProb = new Hashtable<String, Double>();
 	
 	public double getConnetProb(String annoId, String hpoId) {
 		String key = annoId + " " + hpoId;
-		return connectProb.get(key);
+		if (connectProb.containsKey(key)) {
+			return connectProb.get(key);
+		} else return 0.001;
 	}
 	
 	public Ontology getOntology() {
@@ -52,7 +54,6 @@ public abstract class AbstractHPOAnnotation extends BGraph<AnnotationTerm>
 
 	public AbstractHPOAnnotation(Ontology hpo) {
 		this.hpo = hpo;
-		this.connectProb = new Hashtable<String, Double>();
 	}
 
 	public abstract int load(File source);

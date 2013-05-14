@@ -60,7 +60,8 @@ public class BNPredictor extends AbstractPredictor
     	for (String ptype : phenotypes) {
     		score *= oha.getConnetProb(omimId, ptype);
     	}
-    	score *= oha.getPrev(omimId);
+    	double prev = oha.getPrev(omimId);
+    	score *= prev;
     	return score;
     }
 }

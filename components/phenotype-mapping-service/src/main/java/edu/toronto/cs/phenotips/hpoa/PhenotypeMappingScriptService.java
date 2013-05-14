@@ -66,6 +66,7 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
 
     public List<SearchResult> getMatches(Collection<String> phenotypes)
     {
+    	logger.error(predictor.getClass().getCanonicalName());
         return this.predictor.getMatches(phenotypes);
     }
 
@@ -137,7 +138,15 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
             "lastStableBuild/artifact/misc/phenotype_annotation.tab", false)) < 0) {
             throw new InitializationException("Cannot load ontology mapping file, aborting.");
         }
-
+        
+        if (ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt")) < 0) {
+        	throw new InitializationException("Cannot load frequency file");
+        }
+        
+        if (ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt")) < 0) {
+        	throw new InitializationException("Cannot load prevalence file");
+        }
+        
         this.predictor.setAnnotation(ann);
     }
 }

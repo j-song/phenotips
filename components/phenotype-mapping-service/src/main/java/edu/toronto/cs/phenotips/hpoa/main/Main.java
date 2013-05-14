@@ -37,19 +37,21 @@ import edu.toronto.cs.phenotips.hpoa.prediction.ICPredictor;
 
 public class Main
 {
-    private static PhenotypeMappingScriptService hpoa;
+    private static PhenotypeMappingScriptService hpoa = new PhenotypeMappingScriptService();
 
     public static void main(String[] args)
     {
-        Ontology hpo = HPO.getInstance();
+    	HPO hpo = new HPO();
+    	hpo.initialize();
+        Ontology ont = HPO.getInstance();
         // PrettyPrint.printList(hpo.getNodes(), System.out);
-        GeneHPOAnnotations gann = new GeneHPOAnnotations(hpo);
-        gann.load(hpoa.getInputFileHandler(
-            "http://compbio.charite.de/svn/hpo/trunk/src/annotation/phenotype_to_genes.txt", false));
+        //GeneHPOAnnotations gann = new GeneHPOAnnotations(hpo);
+        //gann.load(hpoa.getInputFileHandler(
+        //    "http://compbio.charite.de/svn/hpo/trunk/src/annotation/phenotype_to_genes.txt", false));
 
-        OmimHPOAnnotations ann = new OmimHPOAnnotations(hpo);
+        OmimHPOAnnotations ann = new OmimHPOAnnotations(ont);
         ann.load(hpoa.getInputFileHandler(
-            "http://compbio.charite.de/svn/hpo/trunk/src/annotation/phenotype_annotation.tab", false));
+        		"/home/jsong/Document/phenotype_annotation.tab", false));
         // // PrettyPrint.printList(ann.getOMIMNodes(), System.out);
         // // PrettyPrint.printList(ann.getHPONodes(), System.out);
         // //
@@ -57,7 +59,7 @@ public class Main
         ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt"));
         ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt"));
         
-        
+        System.out.println(ann.getPrev("OMIM:100800"));
         
         
         
