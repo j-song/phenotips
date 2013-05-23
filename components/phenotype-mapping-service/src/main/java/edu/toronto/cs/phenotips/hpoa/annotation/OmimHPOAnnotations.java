@@ -26,7 +26,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -37,6 +40,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import edu.toronto.cs.phenotips.hpoa.ontology.Ontology;
+import edu.toronto.cs.phenotips.hpoa.ontology.OntologyTerm;
 import edu.toronto.cs.phenotips.hpoa.utils.graph.BGraph;
 
 @Component
@@ -53,6 +57,8 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     private static final int MIN_EXPECTED_FIELDS = 8;
 
     private Hashtable<String, Double> prevalence;
+    
+    private Set<String> originalAnnos = new HashSet<String>();
     
     public OmimHPOAnnotations(Ontology hpo)
     {
@@ -99,8 +105,16 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     			hpoId = sc.next();
     			prob = sc.nextDouble();
     			connectProb.put(omimId + " " + hpoId, prob);
+    			originalAnnos.add(omimId + " " + hpoId);
     		}
     		sc.close();
+    		
+    		
+    		propagate();
+    		
+    		
+    		
+    		
     		return 0;
     	} catch (IOException ioe) {
     		System.err.println("IOException: " + ioe.getMessage());
@@ -121,9 +135,87 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     	} else return 0.0;
     }
     
+    /* For each disease, fill in frequency data for phenotypes which are not 
+     * present in the available file.
+     */
+    private void propagate() {
+    	String omimId;
+    	Iterator<String> iter;
+    	Hashtable<String, Double> filled = new Hashtable<String, Double>();
+    	for (AnnotationTerm o : this.getAnnotations()) {
+    		omimId = o.getId();
+    		propagateChildren(omimId);
+    		filled = propagateParents(omimId);
+    		iter = filled.keySet().iterator();
+    		String key;
+    		while (iter.hasNext()) {
+    			key = iter.next();
+    			this.connectProb.put(key, 1 - filled.get(key));
+    		}
+    	}
+    }
     
+    private void propagateChildren(String omimId) {
+    	String hpoId;
+    	List<String> nbs = this.getNeighborIds(omimId);
+    	while (nbs.size() > 0) {
+    		hpoId = nbs.remove(0);
+    		OntologyTerm ont = hpo.getTerm(hpoId);
+    		List<String> children = ont.getChildren();
+    		String newKey;
+    		int count = 0;
+    		double prob = this.connectProb.get(omimId + " " + hpoId);
+    		for (String childId : children) {
+    			newKey = omimId + " " + childId;
+    			if (!this.originalAnnos.contains(newKey)) 
+    				count += 1;
+    			else {
+    				prob -= this.connectProb.get(newKey);
+    			}
+    		}
+    	
+    		if (prob > 0) {
+    			double partial = prob / count;
+    			for (String childId : children) {
+    				newKey = omimId + " " + childId;
+    				if (!this.originalAnnos.contains(newKey)) 
+    					if (this.connectProb.containsKey(newKey))
+    						this.connectProb.put(newKey, partial + 
+    							this.getConnectProb(omimId, childId));
+    					else {
+    						this.connectProb.put(newKey, partial);
+    						nbs.add(childId);
+    					}
+    			}
+    		}
+    	}
+    }
     
-    
+    private Hashtable<String, Double> propagateParents(String omimId) {
+    	String hpoId;
+		List<String> nbs;
+		Hashtable<String, Double> newProb = new Hashtable<String, Double>();
+		nbs = this.getNeighborIds(omimId);
+		while (nbs.size() > 0) {
+			hpoId = nbs.remove(0);
+			OntologyTerm ont = hpo.getTerm(hpoId);
+			List<String> parents = ont.getParents();
+			String newKey;
+			double prob = this.connectProb.get(omimId + " " + hpoId);
+			for (String parentId : parents) {
+				newKey = omimId + " " + parentId;
+				if (! this.originalAnnos.contains(newKey)) {
+					if (newProb.containsKey(newKey)) 
+						newProb.put(newKey, newProb.get(newKey) * (1 - prob));
+					else {
+						newProb.put(newKey, 1 - prob);
+						nbs.add(parentId);
+					}
+				}
+			}
+		}
+		return newProb;
+    }
     
     
     @Override
@@ -157,7 +249,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
                 }
             }
             in.close();
-            propagateHPOAnnotations();
+            //propagateHPOAnnotations();
         } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.err.println("File does not exist");
