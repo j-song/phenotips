@@ -144,14 +144,14 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     	Hashtable<String, Double> filled = new Hashtable<String, Double>();
     	for (AnnotationTerm o : this.getAnnotations()) {
     		omimId = o.getId();
-    		propagateChildren(omimId);
     		filled = propagateParents(omimId);
     		iter = filled.keySet().iterator();
     		String key;
     		while (iter.hasNext()) {
     			key = iter.next();
-    			this.connectProb.put(key, 1 - filled.get(key));
+    			this.connectProb.put(key, filled.get(key));
     		}
+    		propagateChildren(omimId);
     	}
     }
     
@@ -165,6 +165,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     		String newKey;
     		int count = 0;
     		double prob = this.connectProb.get(omimId + " " + hpoId);
+    		System.out.println(omimId + " " + hpoId);
     		for (String childId : children) {
     			newKey = omimId + " " + childId;
     			if (!this.originalAnnos.contains(newKey)) 
@@ -201,14 +202,22 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
 			OntologyTerm ont = hpo.getTerm(hpoId);
 			List<String> parents = ont.getParents();
 			String newKey;
-			double prob = this.connectProb.get(omimId + " " + hpoId);
+			System.err.println(omimId + " " + hpoId);
+			double prob;
+			try {
+				prob = this.connectProb.get(omimId + " " + hpoId);
+			} catch (NullPointerException npe) {
+				prob = newProb.get(omimId + " " + hpoId);
+			}
 			for (String parentId : parents) {
 				newKey = omimId + " " + parentId;
 				if (! this.originalAnnos.contains(newKey)) {
 					if (newProb.containsKey(newKey)) 
-						newProb.put(newKey, newProb.get(newKey) * (1 - prob));
-					else {
-						newProb.put(newKey, 1 - prob);
+						newProb.put(newKey, 
+								0.5 * (1 - newProb.get(newKey) * 2 * (1 - prob)));
+					else{
+						System.err.println("Updating...");
+						newProb.put(newKey, 0.5 * (1 - prob));
 						nbs.add(parentId);
 					}
 				}

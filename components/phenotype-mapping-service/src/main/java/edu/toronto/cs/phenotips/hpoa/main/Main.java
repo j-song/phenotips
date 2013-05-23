@@ -48,7 +48,12 @@ public class Main
         OmimHPOAnnotations ann = new OmimHPOAnnotations(ont);
         ann.load(hpoa.getInputFileHandler(
         		"/home/jsong/Document/phenotype_annotation.tab", false));
-
+        
+        List<String> nbs = ann.getNeighborIds("OMIM:100050");
+        for (String nb : nbs) {
+        	System.out.println(nb);
+        }
+        
         ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt"));
         ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt"));
 
