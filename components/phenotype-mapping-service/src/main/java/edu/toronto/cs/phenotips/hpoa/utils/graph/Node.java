@@ -19,7 +19,6 @@
  */
 package edu.toronto.cs.phenotips.hpoa.utils.graph;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 

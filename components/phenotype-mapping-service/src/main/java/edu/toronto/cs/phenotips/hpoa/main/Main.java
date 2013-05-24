@@ -35,6 +35,7 @@ import edu.toronto.cs.phenotips.hpoa.annotation.SearchResult;
 import edu.toronto.cs.phenotips.hpoa.ontology.HPO;
 import edu.toronto.cs.phenotips.hpoa.ontology.Ontology;
 import edu.toronto.cs.phenotips.hpoa.prediction.BNPredictor;
+import edu.toronto.cs.phenotips.hpoa.prediction.ICPredictor;
 
 public class Main
 {
@@ -49,16 +50,12 @@ public class Main
         ann.load(hpoa.getInputFileHandler(
         		"/home/jsong/Document/phenotype_annotation.tab", false));
         
-        List<String> nbs = ann.getNeighborIds("OMIM:100050");
-        for (String nb : nbs) {
-        	System.out.println(nb);
-        }
-        
         ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt"));
-        ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt"));
+        ann.loadPrev(new File("/home/jsong/Document/rescale_prev_parse.txt"));
 
         Set<String> phenotypes = new HashSet<String>();
         BNPredictor predictor = new BNPredictor();
+        //ICPredictor predictor = new ICPredictor();
         predictor.setAnnotation(ann);
         
         Scanner sc = new Scanner(new FileReader
@@ -66,7 +63,8 @@ public class Main
         String line;
         
         PrintStream ps = new PrintStream(
-        		new File("/home/jsong/Document/output-neg-all.txt"));
+        		new File("/home/jsong/Document/output-neg-all-rescale.txt"));
+        int ctr = 1;
         while (sc.hasNextLine()) {
         	phenotypes.clear();
         	line = sc.nextLine().trim();
@@ -75,8 +73,10 @@ public class Main
         		phenotypes.add(s);
         	}
         	List<SearchResult> presults = predictor.getMatches(phenotypes);
+        	ps.printf("Patient #%s:\n", ctr);
         	PrettyPrint.printList(presults, 20, ps);
         	ps.print("\n");
+        	ctr += 1;
         }
         sc.close();
         ps.close();

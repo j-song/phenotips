@@ -104,29 +104,25 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     			omimId = sc.next();
     			hpoId = sc.next();
     			prob = sc.nextDouble();
-    			connectProb.put(omimId + " " + hpoId, prob);
+    			String key = omimId + " " + hpoId;
+    			if (connectProb.containsKey(key)) 
+    				connectProb.put(key, Math.max(prob, connectProb.get(key)));
+    			else connectProb.put(key, prob);
     			originalAnnos.add(omimId + " " + hpoId);
     		}
-    		sc.close();
-    		
-    		
-    		propagate();
-    		
-    		
-    		
-    		
+    		sc.close();		
+    		propagate();   		
     		return 0;
     	} catch (IOException ioe) {
     		System.err.println("IOException: " + ioe.getMessage());
     		return -1;
-    	}
-    	
+    	} 	
     }
     
     public double getOMIMHPOProb(String key) {
     	if (connectProb.contains(key))
     		return connectProb.get(key);
-    	else return 0.0001;
+    	else return 0.001;
     }
     
     public double getPrev(String omimId) {
@@ -165,7 +161,6 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     		String newKey;
     		int count = 0;
     		double prob = this.connectProb.get(omimId + " " + hpoId);
-    		System.out.println(omimId + " " + hpoId);
     		for (String childId : children) {
     			newKey = omimId + " " + childId;
     			if (!this.originalAnnos.contains(newKey)) 
@@ -202,7 +197,6 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
 			OntologyTerm ont = hpo.getTerm(hpoId);
 			List<String> parents = ont.getParents();
 			String newKey;
-			System.err.println(omimId + " " + hpoId);
 			double prob;
 			try {
 				prob = this.connectProb.get(omimId + " " + hpoId);
@@ -216,7 +210,6 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
 						newProb.put(newKey, 
 								0.5 * (1 - newProb.get(newKey) * 2 * (1 - prob)));
 					else{
-						System.err.println("Updating...");
 						newProb.put(newKey, 0.5 * (1 - prob));
 						nbs.add(parentId);
 					}

@@ -40,17 +40,24 @@ import edu.toronto.cs.phenotips.hpoa.annotation.SearchResult;
 public class BNPredictor extends AbstractPredictor
 {
 	private double allScores = 0.0;
-	
+	private final double BONUS = 0.01;
     @Override
     public List<SearchResult> getMatches(Collection<String> phenotypes)
     {
+    	boolean matchAll;
     	allScores = 0.0;
         Collection<String> specific = findMostSpecific(phenotypes);
     	List<SearchResult> rawResult = new LinkedList<SearchResult>();
     	List<SearchResult> result = new LinkedList<SearchResult>();
-        for (AnnotationTerm o : this.annotations.getAnnotations()) {
-        	double matchScore = naiveBayesScore(o, specific);
-        	//double matchScore = naiveBayesScore(o, phenotypes);
+        
+    	for (AnnotationTerm o : this.annotations.getAnnotations()) {
+    		double matchScore = naiveBayesScore(o, specific);
+        	List<String> nbs = o.getNeighbors();
+        	matchAll = match(specific, nbs);
+        	if (matchAll) {
+        		matchScore += BONUS;
+        		allScores += BONUS;
+        	}
         	if (matchScore > 0) {
         		rawResult.add(new SearchResult(o.getId(), o.getName(), 
         				matchScore));
@@ -64,6 +71,10 @@ public class BNPredictor extends AbstractPredictor
         
         Collections.sort(result);
         return result;
+    }
+    
+    private boolean match(Collection<String> a, List<String> b) {
+    	return b.containsAll(a);
     }
     
     private Collection<String> findMostSpecific(Collection<String> phenotypes) {

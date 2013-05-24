@@ -69,6 +69,7 @@ public class DAG
             if (data.getId() != null) {
                 this.nodes.put(data.getId(), new Node(data));
             }
+            in.close();
         } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.err.println("File does not exist");
