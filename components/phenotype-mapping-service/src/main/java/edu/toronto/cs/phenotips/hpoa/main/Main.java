@@ -48,17 +48,12 @@ public class Main
         OmimHPOAnnotations ann = new OmimHPOAnnotations(ont);
         ClassLoader cl = ann.getClass().getClassLoader();
         ann.load(hpoa.getInputFileHandler(
-<<<<<<< HEAD
-        		cl.getResource("phenotype_annotation.tab").getPath(), false));
+
+        cl.getResource("phenotype_annotation.tab").getPath(), false));
         
         ann.loadOMIMHPO(cl.getResourceAsStream("freq.txt"));
         ann.loadPrev(cl.getResourceAsStream("rescalePrevParse.txt"));
-=======
-        		"/home/jsong/Document/phenotype_annotation.tab", false));
-        
-        ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt"));
-        ann.loadPrev(new File("/home/jsong/Document/rescale_prev_parse.txt"));
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
+
 
         Set<String> phenotypes = new HashSet<String>();
         BNPredictor predictor = new BNPredictor();
@@ -66,19 +61,12 @@ public class Main
         predictor.setAnnotation(ann);
         
         Scanner sc = new Scanner(new FileReader
-<<<<<<< HEAD
         		(new File("/home/jsong/Document/patient.txt")));
         String line;
         
         PrintStream ps = new PrintStream(
         		new File("/home/jsong/Document/output.txt"));
-=======
-        		(new File("/home/jsong/Document/fhs_patients_inclu_neg.txt")));
-        String line;
         
-        PrintStream ps = new PrintStream(
-        		new File("/home/jsong/Document/output-neg-all-rescale.txt"));
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
         int ctr = 1;
         while (sc.hasNextLine()) {
         	phenotypes.clear();

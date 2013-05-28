@@ -30,10 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-<<<<<<< HEAD
 import java.util.LinkedList;
-=======
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -110,18 +107,12 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     			hpoId = sc.next();
     			prob = sc.nextDouble();
     			String key = omimId + " " + hpoId;
-<<<<<<< HEAD
     			if (connectProb.containsKey(key)) {
     				connectProb.put(key, Math.max(prob, connectProb.get(key)));
     			}
     			else {
     				connectProb.put(key, prob);
     			}
-=======
-    			if (connectProb.containsKey(key)) 
-    				connectProb.put(key, Math.max(prob, connectProb.get(key)));
-    			else connectProb.put(key, prob);
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     			originalAnnos.add(omimId + " " + hpoId);
     		}
     		sc.close();		
@@ -136,14 +127,10 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     public double getOMIMHPOProb(String key) {
     	if (connectProb.contains(key)) {
     		return connectProb.get(key);
-<<<<<<< HEAD
     	}
     	else {
     		return 0.001;
     	}
-=======
-    	else return 0.001;
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     }
     
     public double getPrev(String omimId) {
@@ -176,11 +163,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     
     private void propagateChildren(String omimId) {
     	String hpoId;
-<<<<<<< HEAD
     	List<String> nbs = new LinkedList<String>(this.getNeighborIds(omimId));
-=======
-    	List<String> nbs = this.getNeighborIds(omimId);
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     	while (nbs.size() > 0) {
     		hpoId = nbs.remove(0);
     		OntologyTerm ont = hpo.getTerm(hpoId);
@@ -190,14 +173,9 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     		double prob = this.connectProb.get(omimId + " " + hpoId);
     		for (String childId : children) {
     			newKey = omimId + " " + childId;
-<<<<<<< HEAD
     			if (!this.originalAnnos.contains(newKey)) {
     				count += 1;
     			}
-=======
-    			if (!this.originalAnnos.contains(newKey)) 
-    				count += 1;
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     			else {
     				prob -= this.connectProb.get(newKey);
     			}
@@ -207,26 +185,16 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     			double partial = prob / count;
     			for (String childId : children) {
     				newKey = omimId + " " + childId;
-<<<<<<< HEAD
     				if (! this.originalAnnos.contains(newKey)) {
     					if (this.connectProb.containsKey(newKey)) {
     						this.connectProb.put(newKey, partial + 
     							this.getConnectProb(omimId, childId));
     					}
-=======
-    				if (!this.originalAnnos.contains(newKey)) 
-    					if (this.connectProb.containsKey(newKey))
-    						this.connectProb.put(newKey, partial + 
-    							this.getConnectProb(omimId, childId));
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     					else {
     						this.connectProb.put(newKey, partial);
     						nbs.add(childId);
     					}
-<<<<<<< HEAD
     				}
-=======
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     			}
     		}
     	}
@@ -236,11 +204,7 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
     	String hpoId;
 		List<String> nbs;
 		Hashtable<String, Double> newProb = new Hashtable<String, Double>();
-<<<<<<< HEAD
 		nbs = new LinkedList<String>(this.getNeighborIds(omimId));
-=======
-		nbs = this.getNeighborIds(omimId);
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
 		while (nbs.size() > 0) {
 			hpoId = nbs.remove(0);
 			OntologyTerm ont = hpo.getTerm(hpoId);
@@ -255,18 +219,11 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
 			for (String parentId : parents) {
 				newKey = omimId + " " + parentId;
 				if (! this.originalAnnos.contains(newKey)) {
-<<<<<<< HEAD
 					if (newProb.containsKey(newKey)) {
 						newProb.put(newKey, 
 								0.5 * (1 - newProb.get(newKey) * 2 * (1 - prob)));
 					}
 					else {
-=======
-					if (newProb.containsKey(newKey)) 
-						newProb.put(newKey, 
-								0.5 * (1 - newProb.get(newKey) * 2 * (1 - prob)));
-					else{
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
 						newProb.put(newKey, 0.5 * (1 - prob));
 						nbs.add(parentId);
 					}
@@ -308,10 +265,6 @@ public class OmimHPOAnnotations extends AbstractHPOAnnotation
                 }
             }
             in.close();
-<<<<<<< HEAD
-=======
-            //propagateHPOAnnotations();
->>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
         } catch (NullPointerException ex) {
             ex.printStackTrace();
             System.err.println("File does not exist");

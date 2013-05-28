@@ -163,8 +163,6 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
         }
         
         
-        //ann.load(new File(cl.getResource("phenotype_annotation.tab").getPath()));
-        
         if (ann.loadOMIMHPO(cl.getResourceAsStream("freq.txt")) < 0) {
         	throw new InitializationException("Cannot load frequency file");
         }
@@ -175,34 +173,4 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
         
         this.predictor.setAnnotation(ann);
     }
-    
-/*    {
-        OmimHPOAnnotations ann = new OmimHPOAnnotations(this.hpo);
-        //ClassLoader cl = this.getClass().getClassLoader();
-        if (ann.load(new File("/home/jsong/Document/phenotype_annotation.tab")) < 0) {
-            throw new InitializationException("Cannot load ontology mapping file, aborting.");
-        }
-        
-        try {
-			if (ann.loadOMIMHPO(new FileInputStream("/home/jsong/Document/freq.txt")) < 0) {
-				throw new InitializationException("Cannot load frequency file");
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Cannot load freq.txt");
-			e.printStackTrace();
-		}
-        
-        try {
-			if (ann.loadPrev(new FileInputStream("/home/jsong/Document/rescalePrevParse.txt")) < 0) {
-				throw new InitializationException("Cannot load prevalence file");
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Cannot load prev.txt");
-			e.printStackTrace();
-		}
-        
-        this.predictor.setAnnotation(ann);
-    }*/
 }
