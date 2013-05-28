@@ -102,12 +102,18 @@ public class BNPredictor extends AbstractPredictor
     	OmimHPOAnnotations oha = (OmimHPOAnnotations)this.annotations;
     	
     	for (String ptype : phenotypes) {
+<<<<<<< HEAD
     		if (ptype.startsWith("NOT")) {
     			score *= 1 - oha.getConnectProb(omimId, ptype);
     		}
     		else {
     			score *= oha.getConnectProb(omimId, ptype);
     		}
+=======
+    		if (ptype.startsWith("NOT"))
+    			score *= 1 - oha.getConnectProb(omimId, ptype);
+    		else score *= oha.getConnectProb(omimId, ptype);
+>>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
     	}
     	double prev = oha.getPrev(omimId);
     	score *= prev;

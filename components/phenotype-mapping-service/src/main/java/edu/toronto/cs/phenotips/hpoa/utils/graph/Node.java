@@ -62,8 +62,12 @@ public class Node extends AbstractNode implements INode {
 
 	@Override
 	public List<String> getNeighbors() {
+<<<<<<< HEAD
 		//return new LinkedList<String>(this.neighbors);
 		return Collections.unmodifiableList(this.neighbors);
+=======
+		return new LinkedList<String>(this.neighbors);
+>>>>>>> 46cdcbbae832dca1517d405680628e647e90de81
 	}
 
 	@Override
