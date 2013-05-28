@@ -21,8 +21,10 @@ package edu.toronto.cs.phenotips.hpoa;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collection;
@@ -66,7 +68,7 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
 
     public List<SearchResult> getMatches(Collection<String> phenotypes)
     {
-    	logger.error(predictor.getClass().getCanonicalName());
+    	//logger.error(predictor.getClass().getCanonicalName());
         return this.predictor.getMatches(phenotypes);
     }
 
@@ -134,19 +136,73 @@ public class PhenotypeMappingScriptService implements ScriptService, Initializab
     public void initialize() throws InitializationException
     {
         OmimHPOAnnotations ann = new OmimHPOAnnotations(this.hpo);
-        if (ann.load(getInputFileHandler("http://compbio.charite.de/hudson/job/hpo.annotations/" +
-            "lastStableBuild/artifact/misc/phenotype_annotation.tab", false)) < 0) {
-            throw new InitializationException("Cannot load ontology mapping file, aborting.");
+        ClassLoader cl = ann.getClass().getClassLoader();
+
+        /*
+         * The original getInputFileHandler method cannot load the url, so 
+         * included the annotation file in the resources folder.
+         */
+        InputStream is = cl.getResourceAsStream("phenotype_annotation.tab");
+        FileOutputStream fos = null;
+        try {
+			fos = new FileOutputStream(new File("temp.txt"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        try {
+			IOUtils.copy(is, fos);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        if (ann.load(new File("temp.txt")) < 0) {
+        	throw new InitializationException("Cannot load annotation file");
         }
         
-        if (ann.loadOMIMHPO(new File("/home/jsong/Document/freq.txt")) < 0) {
+        
+        //ann.load(new File(cl.getResource("phenotype_annotation.tab").getPath()));
+        
+        if (ann.loadOMIMHPO(cl.getResourceAsStream("freq.txt")) < 0) {
         	throw new InitializationException("Cannot load frequency file");
         }
         
-        if (ann.loadPrev(new File("/home/jsong/Document/prev_parse.txt")) < 0) {
+        if (ann.loadPrev(cl.getResourceAsStream("rescalePrevParse.txt")) < 0) {
         	throw new InitializationException("Cannot load prevalence file");
         }
         
         this.predictor.setAnnotation(ann);
     }
+    
+/*    {
+        OmimHPOAnnotations ann = new OmimHPOAnnotations(this.hpo);
+        //ClassLoader cl = this.getClass().getClassLoader();
+        if (ann.load(new File("/home/jsong/Document/phenotype_annotation.tab")) < 0) {
+            throw new InitializationException("Cannot load ontology mapping file, aborting.");
+        }
+        
+        try {
+			if (ann.loadOMIMHPO(new FileInputStream("/home/jsong/Document/freq.txt")) < 0) {
+				throw new InitializationException("Cannot load frequency file");
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.err.println("Cannot load freq.txt");
+			e.printStackTrace();
+		}
+        
+        try {
+			if (ann.loadPrev(new FileInputStream("/home/jsong/Document/rescalePrevParse.txt")) < 0) {
+				throw new InitializationException("Cannot load prevalence file");
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.err.println("Cannot load prev.txt");
+			e.printStackTrace();
+		}
+        
+        this.predictor.setAnnotation(ann);
+    }*/
 }

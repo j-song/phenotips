@@ -41,11 +41,14 @@ public abstract class AbstractHPOAnnotation extends BGraph<AnnotationTerm>
 	
 	protected Hashtable<String, Double> connectProb = new Hashtable<String, Double>();
 	
-	public double getConnetProb(String annoId, String hpoId) {
+	public double getConnectProb(String annoId, String hpoId) {
 		String key = annoId + " " + hpoId;
 		if (connectProb.containsKey(key)) {
 			return connectProb.get(key);
-		} else return 0.001;
+		} 
+		else {
+			return 0.001;
+		}
 	}
 	
 	public Ontology getOntology() {

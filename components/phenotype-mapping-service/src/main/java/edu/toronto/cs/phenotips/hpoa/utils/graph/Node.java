@@ -19,6 +19,7 @@
  */
 package edu.toronto.cs.phenotips.hpoa.utils.graph;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -61,7 +62,8 @@ public class Node extends AbstractNode implements INode {
 
 	@Override
 	public List<String> getNeighbors() {
-		return this.neighbors;
+		//return new LinkedList<String>(this.neighbors);
+		return Collections.unmodifiableList(this.neighbors);
 	}
 
 	@Override

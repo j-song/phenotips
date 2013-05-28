@@ -2848,7 +2848,7 @@ document.observe('xwiki:dom:loaded', function() {
 
   var services = {
     'omim' : {
-       'script' : "$xwiki.getURL('PhenoTips.OmimPredictService', 'get', 'format=html&amp;q=')",
+       'script' : "$xwiki.getURL('PhenoTips.OmimRemotePredictService', 'get', 'format=html&amp;q=')",
        'source' : [defaultSearchTermIDsInput],
        'target' : $('omim-search-results'),
        'suggestFor' : omimField

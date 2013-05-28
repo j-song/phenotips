@@ -19,6 +19,7 @@
  */
 package edu.toronto.cs.phenotips.hpoa.prediction;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -38,18 +39,61 @@ import edu.toronto.cs.phenotips.hpoa.annotation.SearchResult;
 @Singleton
 public class BNPredictor extends AbstractPredictor
 {
+	private double allScores = 0.0;
+	private final double BONUS = 0.01;
     @Override
     public List<SearchResult> getMatches(Collection<String> phenotypes)
     {
-        List<SearchResult> result = new LinkedList<SearchResult>();
-        for (AnnotationTerm o: this.annotations.getAnnotations()) {
-        	double matchScore = naiveBayesScore(o, phenotypes);
+    	boolean matchAll;
+    	allScores = 0.0;
+        Collection<String> specific = findMostSpecific(phenotypes);
+    	List<SearchResult> rawResult = new LinkedList<SearchResult>();
+    	List<SearchResult> result = new LinkedList<SearchResult>();
+        
+    	for (AnnotationTerm o : this.annotations.getAnnotations()) {
+    		double matchScore = naiveBayesScore(o, specific);
+        	List<String> nbs = o.getNeighbors();
+        	matchAll = match(specific, nbs);
+        	if (matchAll) {
+        		matchScore += BONUS;
+        		allScores += BONUS;
+        	}
         	if (matchScore > 0) {
-        		result.add(new SearchResult(o.getId(), o.getName(), matchScore));
+        		rawResult.add(new SearchResult(o.getId(), o.getName(), 
+        				matchScore));
         	}
         }
+        
+        for (SearchResult sr : rawResult) {
+        	result.add(new SearchResult(sr.getId(), sr.getName(), 
+        			sr.getScore() / allScores));
+        }
+        
         Collections.sort(result);
         return result;
+    }
+    
+    private boolean match(Collection<String> a, List<String> b) {
+    	return b.containsAll(a);
+    }
+    
+    private Collection<String> findMostSpecific(Collection<String> phenotypes) {
+    	Collection<String> result = new ArrayList<String>(0);
+    	boolean add;
+    	for (String ptype : phenotypes) {
+    		add = true;
+    		for (String other : phenotypes) {
+    			if (this.annotations.getOntology().getAncestors(other).contains(ptype) 
+    					&& ! other.equals(ptype)) {
+    				add =false;
+    				break;
+    			}
+    		}
+    		if (add) {
+    			result.add(ptype);
+    		}
+    	}
+    	return result;
     }
     
     private double naiveBayesScore(AnnotationTerm o, Collection<String> phenotypes) {
@@ -58,10 +102,16 @@ public class BNPredictor extends AbstractPredictor
     	OmimHPOAnnotations oha = (OmimHPOAnnotations)this.annotations;
     	
     	for (String ptype : phenotypes) {
-    		score *= oha.getConnetProb(omimId, ptype);
+    		if (ptype.startsWith("NOT")) {
+    			score *= 1 - oha.getConnectProb(omimId, ptype);
+    		}
+    		else {
+    			score *= oha.getConnectProb(omimId, ptype);
+    		}
     	}
     	double prev = oha.getPrev(omimId);
     	score *= prev;
+    	allScores += score;
     	return score;
     }
 }
