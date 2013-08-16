@@ -36,7 +36,6 @@
   <contentUpdateDate>1351221707000</contentUpdateDate>
   <version>1.1</version>
   <title/>
-  <template/>
   <defaultTemplate/>
   <validationScript/>
   <comment/>
@@ -225,7 +224,7 @@
 #macro(gridresult_buildColumnJSON $colname $row)
   #if($colname.startsWith('doc.'))
   #elseif($colname == '_action')
-    #set($discard = $row.put($colname, $msg.get("${request.transprefix}actiontext")))
+    #set($discard = $row.put($colname, $services.localization.render("${request.transprefix}actiontext")))
   #else
     #set($propClassName = "$!request.get($colname.concat('_class'))")
     #if($propClassName != '')
@@ -242,7 +241,7 @@
     #set($fieldValue = "$!itemDoc.getValue($colname)")
     #set($fieldDisplayValue = "$!itemDoc.display($colname, 'view')")
     #if($fieldDisplayValue == '')
-      #set($fieldDisplayValue = $msg.get("${request.transprefix}emptyvalue"))
+      #set($fieldDisplayValue = $services.localization.render("${request.transprefix}emptyvalue"))
     #end
     #set($fieldUrl = '')
     ## only retrieve an URL for a DBListClass item
@@ -382,7 +381,7 @@
   ## Filter values
   #if("$!filterValue" != '' || "$!filterValueLowLimit" != '' || "$!filterValueHighLimit" != '')
     #set($discard = $tablelist.add($tableAlias))
-    #if($colname.startsWith('doc.') &amp;&amp; $colname.endsWith('Date'))
+    #if($colname.startsWith('doc.') &amp;&amp; ($colname.endsWith('Date') || $colname.endsWith('date')))
       #if ($filterValue != '')
         #set($whereSql = "${whereSql} and upper(str(${safe_tableAlias})) like upper(?)")
         #set($discard = $whereParams.add("%${filterValue}%"))
@@ -398,7 +397,7 @@
           #set($discard = $whereParams.add($filterValueHighLimit.toDate()))
         #end
       #end
-    #elseif($colname == 'doc.creator')
+    #elseif($colname == 'doc.creator' || $colname == 'doc.author')
       #foreach ($filterValue in $request.getParameterValues($colname))
         #if ($foreach.index == 0)
           #set ($whereSql = "${whereSql} and (")
@@ -406,8 +405,11 @@
           #set ($whereSql = "${whereSql} or")
         #end
         #if ($filterValue.startsWith('XWiki.'))
-          #set($whereSql = "${whereSql} ${safe_colname.replace('_','.')} = ?")
+          #set($whereSql = "${whereSql} ${colname} = ?")
           #set($discard = $whereParams.add("${filterValue}"))
+        #elseif ($filterValue.contains(':'))
+          #set($whereSql = "${whereSql} ${colname} = ?")
+          #set($discard = $whereParams.add("${stringtool.substringAfter($filterValue, ':')}"))
         #else
           #set($whereSql = "${whereSql} upper(str(${safe_colname.replace('_','.')})) like upper(?)")
           #set($discard = $whereParams.add("%${filterValue}%"))

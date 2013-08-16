@@ -36,14 +36,26 @@
   <contentUpdateDate>1341890547000</contentUpdateDate>
   <version>1.1</version>
   <title/>
-  <template/>
   <defaultTemplate/>
   <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{velocity wiki="false"}}
+  <content>{{velocity wiki="true"}}{{{
+#macro (findPhenotypeMetadata)
+  #set ($meta = $NULL)
+  #foreach ($metaObj in $patientDoc.getObjects('PhenoTips.PhenotypeMetaClass'))
+    #set ($nameProperty = $metaObj.get('target_property_name'))
+    #set ($valueProperty = $metaObj.get('target_property_value'))
+    #if ($nameProperty == $field &amp;&amp; $valueProperty == $code)
+      #set ($meta = $metaObj)
+      #break($foreach)
+    #end
+  #end
+#end
+##
+##
 #set ($targetSpace = "$!{request.space}")
 #if (!$targetSpace || $targetSpace == 'PhenoTips')
   #break
@@ -62,15 +74,40 @@
 #foreach ($referrer in $request.getParameterValues('doc.creator'))
   #if ($referrer != '')
     #if ($isFirstReferrer)
-      #set ($query = $query.concat(" and (doc.creator = ?"))
+      #set ($query = $query.concat(' and ('))
       #set ($isFirstReferrer = false)
     #else
-      #set ($query = $query.concat(" or doc.creator = ?"))
+      #set ($query = $query.concat(' or '))
     #end
+    #if ($referrer.contains(':'))
+      #set ($query = $query.concat('doc.creator = ? or '))
+      #set ($discard = $parameters.add($stringtool.substringAfter($referrer, ':')))
+    #end
+    #set ($query = $query.concat('doc.creator = ?'))
     #set ($discard = $parameters.add($referrer))
   #end
 #end
 #if (!$isFirstReferrer)
+  #set ($query = $query.concat(')'))
+#end
+#set ($isFirstAuthor = true)
+#foreach ($author in $request.getParameterValues('doc.author'))
+  #if ($author != '')
+    #if ($isFirstAuthor)
+      #set ($query = $query.concat(' and ('))
+      #set ($isFirstAuthor = false)
+    #else
+      #set ($query = $query.concat(' or '))
+    #end
+    #if ($author.contains(':'))
+      #set ($query = $query.concat('doc.author = ? or '))
+      #set ($discard = $parameters.add($stringtool.substringAfter($author, ':')))
+    #end
+    #set ($query = $query.concat('doc.author = ?'))
+    #set ($discard = $parameters.add($author))
+  #end
+#end
+#if (!$isFirstAuthor)
   #set ($query = $query.concat(')'))
 #end
 #set ($isFirstPhenotype = true)
@@ -125,6 +162,16 @@
   #set ($query = $query.concat(' and doc.creationDate &lt; ?'))
   #set ($discard = $parameters.add($date.toDate()))
 #end
+#if ("$!request.get('doc.date/after')" != '')
+  #set ($date = $dateFormat.parseDateTime($request.get('doc.date/after')))
+  #set ($query = $query.concat(' and doc.date &gt; ?'))
+  #set ($discard = $parameters.add($date.toDate()))
+#end
+#if ("$!request.get('doc.date/before')" != '')
+  #set ($date = $dateFormat.parseDateTime($request.get('doc.date/before')))
+  #set ($query = $query.concat(' and doc.date &lt; ?'))
+  #set ($discard = $parameters.add($date.toDate()))
+#end
 #set ($hasBDate = false)
 #if ("$!request.get('date_of_birth/after')" != '')
   #set ($date = $dateFormat.parseDateTime($request.get('date_of_birth/after')))
@@ -148,38 +195,56 @@
 #end
 $response.addHeader("Content-disposition", "attachment; filename=phenotips_${xwiki.formatDate($util.date, 'yyyy-MM-dd_HH-mm')}.csv")##
 $response.setContentType('text/csv')##
+#set ($newline = ' ')
+#set ($newline = "${newline.charAt(0).toChars(13)[0]}${newline.charAt(0).toChars(10)[0]}")
 #set ($codeProperties = ['phenotype', 'negative_phenotype', 'prenatal_phenotype', 'omim_id'])
 #set ($enabledFields = $request.getParameterValues('columns'))
 #set ($displayedFields = [])
 #foreach ($field in $activeFields)
   #if ($enabledFields.contains($field))
     #set ($discard = $displayedFields.add($field))
-  #elseif ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains("${field}_code"))
+  #elseif ($codeProperties.contains($field) &amp;&amp; ($enabledFields.contains("${field}_code") || $enabledFields.contains("${field}_combined") || $enabledFields.contains("${field}_code_meta") || $enabledFields.contains("${field}_meta")))
     #set ($discard = $displayedFields.add($field))
   #end
 #end
 #if ($enabledFields.contains('doc.name'))Report ID,#end
 #if ($enabledFields.contains('referrer'))Referrer,#end
 #if ($enabledFields.contains('creationDate'))Date,#end
+#if ($enabledFields.contains('author'))Last modified by,#end
+#if ($enabledFields.contains('date'))Last modification date,#end
 #foreach ($field in $displayedFields)
   #if ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains("${field}_code"))
-    ${targetClass.get($field).prettyName} (code)##
-    #if ($enabledFields.contains($field)),#end
+    "${targetClass.get($field).prettyName} (code)"##
+    #if ($enabledFields.contains($field) || $enabledFields.contains("${field}_combined") || $enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
   #end
   #if ($enabledFields.contains($field))
-    ${targetClass.get($field).prettyName}##
+    "${targetClass.get($field).prettyName}"##
+    #if ($enabledFields.contains("${field}_combined") || $enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
+  #end
+  #if ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains("${field}_combined"))
+    "${targetClass.get($field).prettyName} (code and name)"##
+    #if ($enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
+  #end
+  #if ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains("${field}_code_meta"))
+    "${targetClass.get($field).prettyName} (code, with metadata)"##
+    #if ($enabledFields.contains("${field}_meta")),#end
+  #end
+  #if ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains("${field}_meta"))
+    "${targetClass.get($field).prettyName} (with metadata)"##
   #end
   #if ($foreach.hasNext)##
     ,##
   #end
 #end
-
+${newline}##
 #foreach ($patient in $patients)
   #set ($patientDoc = $xwiki.getDocument($patient))
   #set ($patientObj = $patientDoc.getObject($targetClassName))
   #if ($enabledFields.contains('doc.name'))${patientDoc.documentReference.name},#end
   #if ($enabledFields.contains('referrer'))${xwiki.getUserName($patientDoc.creator, false)},#end
   #if ($enabledFields.contains('creationDate'))$!{xwiki.formatDate($patientDoc.creationDate, 'MM/dd/yyyy')},#end
+  #if ($enabledFields.contains('author'))${xwiki.getUserName($patientDoc.author, false)},#end
+  #if ($enabledFields.contains('date'))$!{xwiki.formatDate($patientDoc.date, 'MM/dd/yyyy')},#end
   #foreach ($field in $displayedFields)
     #if ($codeProperties.contains($field))
       #if ($enabledFields.contains("${field}_code"))
@@ -187,13 +252,13 @@ $response.setContentType('text/csv')##
         #foreach ($code in $!patientObj.getProperty($field).value)
           $code##
           #if ($foreach.hasNext)
-
+            ${newline}##
           #end
         #end
         "##
-        #if ($enabledFields.contains($field)),#end
+        #if ($enabledFields.contains($field) || $enabledFields.contains("${field}_combined") || $enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
       #end
-      #if ($codeProperties.contains($field) &amp;&amp; $enabledFields.contains($field))
+      #if ($enabledFields.contains($field))
         "##
         #foreach ($code in $!patientObj.getProperty($field).value)
           #if ($field.endsWith('phenotype'))
@@ -207,7 +272,83 @@ $response.setContentType('text/csv')##
             ${services.omim.get($code).name.replace('"', '""')}##
           #end
           #if ($foreach.hasNext)
-
+            ${newline}##
+          #end
+        #end
+        "##
+        #if ($enabledFields.contains("${field}_combined") || $enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
+      #end
+      #if ($enabledFields.contains("${field}_combined"))
+        "##
+        #foreach ($code in $!patientObj.getProperty($field).value)
+          #if ($field.endsWith('phenotype'))
+            #if ($code.startsWith('HP:'))[${code}] #end
+            #set ($name = $!{services.hpo.get($code).name})
+            #if ($name)
+              ${name.replace('"', '""')}##
+            #else
+              ${code.replace('"', '""')}##
+            #end
+          #else
+            [${code}] ${services.omim.get($code).name.replace('"', '""')}##
+          #end
+          #if ($foreach.hasNext)
+            ${newline}##
+          #end
+        #end
+        "##
+        #if ($enabledFields.contains("${field}_meta") || $enabledFields.contains("${field}_code_meta")),#end
+      #end
+      #if ($enabledFields.contains("${field}_code_meta"))
+        "##
+        #foreach ($code in $!patientObj.getProperty($field).value)
+          ${code.replace('"', '""')}##
+          #if ($field.endsWith('phenotype'))
+            #findPhenotypeMetadata()
+            #if ($meta)
+              #set ($ageMeta = $meta.getProperty('age_of_onset').value)
+              #if ("$!{ageMeta}" != '')
+                ; ${ageMeta}##
+              #end
+              #set ($paceMeta = $meta.getProperty('pace_of_progression').value)
+              #if ("$!{paceMeta}" != '')
+                ; ${paceMeta}##
+              #end
+            #end
+          #end
+          #if ($foreach.hasNext)
+            ${newline}##
+          #end
+        #end
+        "##
+        #if ($enabledFields.contains("${field}_meta")),#end
+      #end
+      #if ($enabledFields.contains("${field}_meta"))
+        "##
+        #foreach ($code in $!patientObj.getProperty($field).value)
+          #if ($field.endsWith('phenotype'))
+            #set ($name = $!{services.hpo.get($code).name})
+            #if ($name)
+              ${name.replace('"', '""')}##
+            #else
+              ${code.replace('"', '""')}##
+            #end
+            #findPhenotypeMetadata()
+            #if ($meta)
+              #set ($ageMeta = $meta.getProperty('age_of_onset').value)
+              #if ("$!{ageMeta}" != '')
+                ; ${services.ontologies.resolveTerm($ageMeta).name}##
+              #end
+              #set ($paceMeta = $meta.getProperty('pace_of_progression').value)
+              #if ("$!{paceMeta}" != '')
+                ; ${services.ontologies.resolveTerm($paceMeta).name}##
+              #end
+            #end
+          #else
+            ${services.omim.get($code).name.replace('"', '""')}##
+          #end
+          #if ($foreach.hasNext)
+            ${newline}##
           #end
         #end
         "##
@@ -226,10 +367,12 @@ $response.setContentType('text/csv')##
         #foreach ($line in $value)
           $!{line.replace('"', '""')}##
           #if ($foreach.hasNext)
-
+            ${newline}##
           #end
         #end
         "##
+      #elseif ("$!{targetClass.get($field).classType}" == 'TextArea')
+        "$!{services.rendering.render($services.rendering.parse($value, $patientDoc.getSyntax().toIdString()), "plain/1.0").replace('"', '""')}"##
       #else
         #set($displayedValue = "$!{patientObj.display($field, 'view')}")
         #if ($displayedValue.startsWith('{{html'))
@@ -243,7 +386,8 @@ $response.setContentType('text/csv')##
       ,##
     #end
   #end
-
+  ${newline}##
 #end
+}}}
 {{/velocity}}</content>
 </xwikidoc>

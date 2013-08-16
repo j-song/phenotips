@@ -36,7 +36,6 @@
   <contentUpdateDate>1331942300000</contentUpdateDate>
   <version>1.1</version>
   <title>Phenotype database</title>
-  <template/>
   <defaultTemplate/>
   <validationScript/>
   <comment/>
@@ -60,7 +59,7 @@
         <displayType>input</displayType>
         <multiSelect>1</multiSelect>
         <name>activeFields</name>
-        <number>9</number>
+        <number>10</number>
         <picker>0</picker>
         <prettyName>Active fields (displayed to report editors and viewers)</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -125,7 +124,7 @@ document.observe("xwiki:dom:loaded", function() {
         <displayType>input</displayType>
         <multiSelect>1</multiSelect>
         <name>activeSections</name>
-        <number>8</number>
+        <number>9</number>
         <picker>0</picker>
         <prettyName>Active sections and their order of appearence</prettyName>
         <relationalStorage>0</relationalStorage>
@@ -155,7 +154,7 @@ $!value
 {{/velocity}}</customDisplay>
         <disabled>0</disabled>
         <name>dateOfBirthFormat</name>
-        <number>11</number>
+        <number>12</number>
         <picker>0</picker>
         <prettyName>Date of birth format</prettyName>
         <size>30</size>
@@ -164,6 +163,20 @@ $!value
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </dateOfBirthFormat>
+      <enableImperialUnitSystem>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <name>enableImperialUnitSystem</name>
+        <number>24</number>
+        <prettyName>Enable imperial unit system for entering measurements</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </enableImperialUnitSystem>
       <idField>
         <customDisplay>{{include document="PhenoTips.DBConfigurationClassDisplayer" /}}</customDisplay>
         <disabled>0</disabled>
@@ -200,7 +213,7 @@ $!value
   &lt;li&gt;
     &lt;label for="${prefix}${name}_${sectionId}"&gt;
     &lt;input type="checkbox" name="${prefix}${name}" id="${prefix}${name}_${option}" value="$option"#if ($value.contains($option)) checked="checked"#end/&gt;
-    $msg.get("patient.livetable.${option}")
+    $services.localization.render("patient.livetable.${option}")
     &lt;/label&gt;
   &lt;/li&gt;
 #end
@@ -221,7 +234,7 @@ $!value
         <displayType>input</displayType>
         <multiSelect>1</multiSelect>
         <name>livetableColumns</name>
-        <number>5</number>
+        <number>6</number>
         <picker>0</picker>
         <prettyName>Livetable columns</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -239,7 +252,7 @@ $!value
         <customDisplay/>
         <disabled>0</disabled>
         <name>livetableRows</name>
-        <number>7</number>
+        <number>8</number>
         <numberType>integer</numberType>
         <prettyName>Number of rows to display by default</prettyName>
         <size>30</size>
@@ -254,17 +267,17 @@ $!value
 {{html clean="false"}}
 &lt;select name="${prefix}${name}"&gt;
 #foreach($column in $object.getProperty('livetableColumns').value)
-  &lt;option value="$escapetool.xml($column)"#if ($column == $value) selected="selected"#{end}&gt;$msg.get("patient.livetable.${column}")&lt;/option&gt;
+  &lt;option value="$escapetool.xml($column)"#if ($column == $value) selected="selected"#{end}&gt;$services.localization.render("patient.livetable.${column}")&lt;/option&gt;
 #end
 &lt;/select&gt;
 {{/html}}
 #else
-  $msg.get("patient.livetable.${value}")
+  $services.localization.render("patient.livetable.${value}")
 #end
 {{/velocity}}</customDisplay>
         <disabled>0</disabled>
         <name>livetableSortColumn</name>
-        <number>6</number>
+        <number>7</number>
         <picker>0</picker>
         <prettyName>Column to sort by default</prettyName>
         <size>30</size>
@@ -280,7 +293,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>mandatoryFields</name>
-        <number>10</number>
+        <number>11</number>
         <picker>0</picker>
         <prettyName>Mandatory fields</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -294,6 +307,45 @@ $!value
         <values/>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </mandatoryFields>
+      <measurementUnitSystem>
+        <cache>0</cache>
+        <customDisplay>{{velocity}}
+#if ($value != 'imperial')#set ($value = 'metric')#end
+{{html clean=false}}&lt;p&gt;&lt;label&gt;&lt;input type="radio" name="${prefix}${name}" id="${prefix}${name}_metric" value="metric" #if ($value == 'metric') checked="checked"#end /&gt;metric&lt;/label&gt;  &lt;label&gt;&lt;input type="radio" name="${prefix}${name}" id="${prefix}${name}_imperial" value="imperial" #if ($value == 'imperial') checked="checked"#end /&gt;imperial&lt;/label&gt;&lt;/p&gt;
+&lt;br/&gt;
+{{/velocity}}</customDisplay>
+        <disabled>0</disabled>
+        <displayType>radio</displayType>
+        <multiSelect>0</multiSelect>
+        <name>measurementUnitSystem</name>
+        <number>25</number>
+        <picker>0</picker>
+        <prettyName>Default unit system for entering measurements, when "Imperial unit system" is enabled</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>metric|imperial</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </measurementUnitSystem>
+      <no_pii_warning>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <name>no_pii_warning</name>
+        <number>5</number>
+        <prettyName>Warn that no personally identifiable information should be recored</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </no_pii_warning>
       <patientClass>
         <cache>0</cache>
         <classname/>
@@ -304,7 +356,7 @@ $!value
         <multiSelect>0</multiSelect>
         <name>patientClass</name>
         <number>1</number>
-        <picker>1</picker>
+        <picker>0</picker>
         <prettyName>Patient class</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
@@ -328,7 +380,7 @@ $!value
         <multiSelect>0</multiSelect>
         <name>patientTemplate</name>
         <number>2</number>
-        <picker>1</picker>
+        <picker>0</picker>
         <prettyName>Patient template</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
@@ -351,8 +403,8 @@ $!value
         <idField/>
         <multiSelect>0</multiSelect>
         <name>phenotypeMapping</name>
-        <number>13</number>
-        <picker>1</picker>
+        <number>14</number>
+        <picker>0</picker>
         <prettyName>Phenotype mapping document</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
@@ -370,7 +422,7 @@ $!value
         <customDisplay/>
         <disabled>0</disabled>
         <name>relativeReportHint</name>
-        <number>12</number>
+        <number>13</number>
         <picker>0</picker>
         <prettyName>Hint for relative field</prettyName>
         <size>30</size>
@@ -386,7 +438,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__diagnosis-info</name>
-        <number>20</number>
+        <number>21</number>
         <picker>0</picker>
         <prettyName>Diagnosis</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -407,7 +459,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__family-history</name>
-        <number>18</number>
+        <number>19</number>
         <picker>0</picker>
         <prettyName>Family history</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -439,7 +491,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__measurements</name>
-        <number>15</number>
+        <number>16</number>
         <picker>0</picker>
         <prettyName>Measurements</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -460,7 +512,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__medical_history</name>
-        <number>19</number>
+        <number>20</number>
         <picker>0</picker>
         <prettyName>Medical history</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -481,7 +533,7 @@ $!value
         <displayType>select</displayType>
         <multiSelect>0</multiSelect>
         <name>section__other</name>
-        <number>22</number>
+        <number>23</number>
         <picker>0</picker>
         <prettyName>More information</prettyName>
         <relationalStorage>0</relationalStorage>
@@ -497,12 +549,23 @@ $!value
       </section__other>
       <section__patient-info>
         <cache>0</cache>
-        <customDisplay>{{include document="PhenoTips.DBConfigurationClassDisplayer" /}}</customDisplay>
+        <customDisplay>{{velocity output=false}}
+#set($customValues = {"PhenoTips.RelativeClass" : "connections to relatives present in the database"})
+#set($hideClassFields = true)
+{{/velocity}}
+
+{{include document="PhenoTips.DBConfigurationClassDisplayer" /}}
+
+{{velocity output=false}}
+#set($customClassName = '')
+#set($customClassTableName = '')
+#set($hideClassFields = '')
+{{/velocity}}</customDisplay>
         <disabled>0</disabled>
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__patient-info</name>
-        <number>14</number>
+        <number>15</number>
         <picker>0</picker>
         <prettyName>Patient information</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -523,7 +586,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__phenotype-info</name>
-        <number>16</number>
+        <number>17</number>
         <picker>0</picker>
         <prettyName>Phenotypic description (clinical symptions)</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -544,7 +607,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__prenatal_phenotype-info</name>
-        <number>17</number>
+        <number>18</number>
         <picker>0</picker>
         <prettyName>Prenatal and perinatal history</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -576,7 +639,7 @@ $!value
         <displayType>checkbox</displayType>
         <multiSelect>1</multiSelect>
         <name>section__variant-info</name>
-        <number>21</number>
+        <number>22</number>
         <picker>0</picker>
         <prettyName>Variants</prettyName>
         <relationalStorage>1</relationalStorage>
@@ -604,8 +667,6 @@ $!value
         <value>date_of_birth</value>
         <value>gender</value>
         <value>age_of_onset</value>
-        <value>relative</value>
-        <value>relative_of</value>
         <value>consanguinity</value>
         <value>omim_id</value>
         <value>indication_for_referral</value>
@@ -622,6 +683,9 @@ $!value
         <value>medical_developmental_history</value>
         <value>reports_history</value>
         <value>extended_negative_phenotype</value>
+        <value>paternal_ethnicity</value>
+        <value>maternal_ethnicity</value>
+        <value>in_vitro</value>
       </activeFields>
     </property>
     <property>
@@ -638,6 +702,9 @@ $!value
     </property>
     <property>
       <dateOfBirthFormat>MM/dd/yyyy</dateOfBirthFormat>
+    </property>
+    <property>
+      <enableImperialUnitSystem>0</enableImperialUnitSystem>
     </property>
     <property>
       <idField>identifier</idField>
@@ -664,6 +731,12 @@ $!value
     </property>
     <property>
       <mandatoryFields/>
+    </property>
+    <property>
+      <measurementUnitSystem>metric</measurementUnitSystem>
+    </property>
+    <property>
+      <no_pii_warning>0</no_pii_warning>
     </property>
     <property>
       <patientClass>PhenoTips.PatientClass</patientClass>
@@ -701,11 +774,7 @@ $!value
     </property>
     <property>
       <section__patient-info>
-        <value>date_of_birth</value>
-        <value>gender</value>
-        <value>onset</value>
-        <value>relative</value>
-        <value>relative_of</value>
+        <value>PhenoTips.RelativeClass</value>
       </section__patient-info>
     </property>
     <property>
@@ -1687,17 +1756,20 @@ $!value
         <value>patientTemplate</value>
         <value>idField</value>
         <value>idPrefix</value>
+        <value>no_pii_warning</value>
         <value>livetableColumns</value>
         <value>livetableSortColumn</value>
         <value>livetableRows</value>
-        <value>tagProperty</value>
         <value>activeSections</value>
         <value>activeFields</value>
         <value>mandatoryFields</value>
         <value>dateOfBirthFormat</value>
         <value>relativeReportHint</value>
         <value>phenotypeMapping</value>
+        <value>section__patient-info</value>
         <value>section__measurements</value>
+        <value>enableImperialUnitSystem</value>
+        <value>measurementUnitSystem</value>
         <value>section__variant-info</value>
       </propertiesToShow>
     </property>

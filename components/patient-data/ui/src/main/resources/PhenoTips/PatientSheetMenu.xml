@@ -36,7 +36,6 @@
   <contentUpdateDate>1326692936000</contentUpdateDate>
   <version>1.1</version>
   <title/>
-  <template/>
   <defaultTemplate/>
   <validationScript/>
   <comment/>
@@ -61,7 +60,12 @@
     #documentAction($doc.getURL('view', 'viewer=history') 'tmHistory' 'Browse modification history')
   #end
   #if ($menuconfig.getProperty('enablePdfTool').value.contains($xcontext.action))
-    #documentAction($doc.getURL('export', "format=pdf&amp;pdfcover=0&amp;pdftoc=0&amp;pdftemplate=$xwiki.getSpacePreference('colorTheme')") 'tmExportPdf' 'Export PDF')
+    #if ($xwiki.getDocument($xwiki.getSpacePreference('colorTheme')).getObject('XWiki.PDFClass'))
+      #set ($pdfTemplate = $xwiki.getSpacePreference('colorTheme'))
+    #else
+      #set ($pdfTemplate = 'PhenoTips.PatientSheetCode')
+    #end
+    #documentAction($doc.getURL('export', "format=pdf&amp;pdfcover=0&amp;pdftoc=0&amp;pdftemplate=${pdfTemplate}") 'tmExportPdf' 'Export PDF')
   #end
   #if ($menuconfig.getProperty('enableTocTool').value.contains($xcontext.action))
     #documentAction('#table-of-contents' 'tmToC' 'Table of contents')
@@ -70,7 +74,7 @@
     #if ($xcontext.action == 'view')
       #if($hasEdit &amp;&amp; !$isReadOnly)
         #set($editaction = $doc.getDefaultEditMode())
-        #documentAction($doc.getURL($editaction, $!languageparams) 'tmActionEdit' $msg.get('core.menu.edit'))
+        #documentAction($doc.getURL($editaction, $!languageparams) 'tmActionEdit' $services.localization.render('core.menu.edit'))
       #end
     #elseif ($xcontext.action == 'edit')
       #documentEditorAction('save', 'Save')
@@ -80,7 +84,7 @@
   #if ($menuconfig.getProperty('enableDeleteTool').value.contains($xcontext.action))
     #set ($canDelete = !$doc.isNew() &amp;&amp; $xwiki.checkAccess($doc.fullName, 'delete'))
     #if ($canDelete)
-      #documentAction($doc.getURL('delete', $!languageparams) 'tmActionDelete' $msg.get('core.menu.delete'))
+      #documentAction($doc.getURL('delete', $!languageparams) 'tmActionDelete' $services.localization.render('core.menu.delete'))
     #end
   #end
 &lt;/div&gt;
